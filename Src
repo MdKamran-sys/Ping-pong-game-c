@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <windows.h>
+
+#define WIDTH 60
+#define HEIGHT 20
+
+int ballX, ballY;
+int ballDirX, ballDirY;
+int paddle1Y, paddle2Y;
+int paddleHeight = 4;
+int score1, score2;
+
+void gotoxy(int x, int y) {
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+void drawBorder() {
+    system("cls");
+    for (int i = 0; i < WIDTH + 2; i++) printf("#");
+    printf("\n");
+
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 0; j < WIDTH + 2; j++) {
+            if (j == 0 || j == WIDTH + 1) printf("#");
+            else printf(" ");
+        }
+        printf("\n");
+    }
+
+    for (int i = 0; i < WIDTH + 2; i++) printf("#");
+    printf("\n");
+}
+
+void drawPaddles() {
+    for (int i = 0; i < paddleHeight; i++) {
+        gotoxy(2, paddle1Y + i);
+        printf("|");
+        gotoxy(WIDTH - 1, paddle2Y + i);
+        printf("|");
+    }
+}
+
+void drawBall() {
+    gotoxy(ballX, ballY);
+    printf("O");
+}
+
+void updateBall() {
+    gotoxy(ballX, ballY);
+    printf(" ");
+
+    ballX += ballDirX;
+    ballY += ballDirY;
+
+    if (ballY == 1 || ballY == HEIGHT - 1) ballDirY *= -1;
+
+    if (ballX == 3) {
+        if (ballY >= paddle1Y && ballY < paddle1Y + paddleHeight) {
+            ballDirX *= -1;
+        } else {
+            score2++;
+            ballX = WIDTH / 2;
+            ballY = HEIGHT / 2;
+            ballDirX = -ballDirX;
+        }
+    }
+
+    if (ballX == WIDTH - 2) {
+        if (ballY >= paddle2Y && ballY < paddle2Y + paddleHeight) {
+            ballDirX *= -1;
+        } else {
+            score1++;
+            ballX = WIDTH / 2;
+            ballY = HEIGHT / 2;
+            ballDirX = -ballDirX;
+        }
+    }
+
+    drawBall();
+}
+
+void updatePaddle1() {
+    if (_kbhit()) {
+        switch (_getch()) {
+            case 'w':
+                if (paddle1Y > 1) paddle1Y--;
+                break;
+            case 's':
+                if (paddle1Y < HEIGHT - paddleHeight) paddle1Y++;
+                break;
+        }
+    }
+}
+
+void updatePaddle2() {
+    if (ballDirX > 0) {
+        if (paddle2Y + paddleHeight / 2 < ballY && paddle2Y < HEIGHT - paddleHeight) paddle2Y++;
+        if (paddle2Y + paddleHeight / 2 > ballY && paddle2Y > 1) paddle2Y--;
+    }
+}
+
+void showScores() {
+    gotoxy(WIDTH / 2 - 3, 0);
+    printf("%d - %d", score1, score2);
+}
+
+int main() {
+    paddle1Y = paddle2Y = HEIGHT / 2 - paddleHeight / 2;
+    ballX = WIDTH / 2;
+    ballY = HEIGHT / 2;
+    ballDirX = -1;
+    ballDirY = -1;
+
+    drawBorder();
+    drawPaddles();
+    drawBall();
+
+    while (1) {
+        updateBall();
+        updatePaddle1();
+        updatePaddle2();
+        drawPaddles();
+        showScores();
+        Sleep(50);
+    }
+
+    return 0;
+}
